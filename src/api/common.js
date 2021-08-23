@@ -45,7 +45,7 @@ export default {
 	},
 	editRecord (data) {
 		return axios.request({
-			url: '/updateRecord',
+			url: '/editRecord',
 			method: 'post',
 			data,
 		})

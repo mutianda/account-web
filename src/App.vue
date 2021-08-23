@@ -1,10 +1,10 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+  <div id="app" class="main">
+    <div id="nav" class="nav">
+      <router-link to="/">账单</router-link> |
+      <router-link to="/canvas">图表</router-link>
     </div>
-    <router-view/>
+    <router-view class="main-view"/>
   </div>
 </template>
 
@@ -15,8 +15,14 @@
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
 }
-
+body{
+  padding: 0;
+  margin: 0;
+}
 #nav {
   padding: 30px;
 
@@ -29,4 +35,7 @@
     }
   }
 }
+  .main-view{
+    height: calc(100% - 90px);
+  }
 </style>

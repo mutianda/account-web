@@ -31,7 +31,7 @@ import {
   CheckboxGroup,
   Image,
   Row,
-  Col
+  Col,DatePicker
 } from 'element-ui'
 
 Vue
@@ -63,6 +63,7 @@ Vue
   .use(Image)
   .use(Row)
   .use(Col)
+.use(DatePicker)
 
 Vue.prototype.$message = Message;
 Vue.prototype.$confirm = MessageBox.confirm;
