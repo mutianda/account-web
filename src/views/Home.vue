@@ -77,7 +77,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <add-edit ref="addEdit" @doSearch="doSearch"></add-edit>
+    <add-edit ref="addEdit" @doSearch="doSearch" :treeList="treeData"></add-edit>
   </div>
 </template>
 
@@ -88,11 +88,68 @@ export default {
   components:{
     addEdit
   },
+  provide(){
+    return {
+      treeData:this.treeData
+    }
+  },
   data(){
     return {
       axios:this.$api,
       pickerOptions: {
-        shortcuts: [{
+        shortcuts: [
+          {
+            text: '今天',
+            onClick(picker) {
+              const end =  new Date(new Date().toLocaleDateString()).getTime()+24*60*60*1000-1;
+              const start =  new Date(new Date().toLocaleDateString()).getTime();
+              picker.$emit('pick', [start, end]);
+            }
+          },
+          {
+            text: '当前周',
+            onClick(picker) {
+              var date = new Date(new Date().toLocaleDateString());
+
+              //今天是这周的第几天
+              var today = date.getDay();
+
+              //上周日距离今天的天数（负数表示）
+              var stepSunDay = -today + 1;
+
+              // 如果今天是周日
+              if (today == 0) {
+
+                stepSunDay = -7;
+              }
+
+              // 周一距离今天的天数（负数表示）
+              var stepMonday = 7 - today;
+
+              var time = date.getTime();
+
+              var start = time + stepSunDay * 24 * 3600 * 1000;
+              var end = time + stepMonday * 24 * 3600 * 1000+24*60*60*1000-1;
+              picker.$emit('pick', [start, end]);
+            },
+          },
+          {
+            text: '当前月',
+            onClick(picker) {
+              let time = new Date();//当前月 要计算其他时间点自己传入即可
+              let year = time.getFullYear();
+              let month = parseInt( time.getMonth() + 1 );
+              let start = new Date( year + "-" + month + "-01 00:00:00" ).getTime()
+              if( month == 12 ){
+
+                month = 0;
+                year += 1;
+              }
+              let end = new Date( year + "-" + ( month + 1 )  + "-01 00:00:00" ).getTime()-1
+              picker.$emit('pick', [start, end]);
+            }
+          },
+                {
           text: '最近一周',
           onClick(picker) {
             const end = new Date();
@@ -122,11 +179,12 @@ export default {
         text:'',
         dataTime:[
           (new Date()).getTime()-1000*60*60*24*3,
-          (new Date()).getTime(),
+          new Date(new Date().toLocaleDateString()).getTime()+24*60*60*1000-1,
 
         ]
       },
       tableData: [],
+      treeData:[]
     }
   },
   computed:{
@@ -149,6 +207,7 @@ export default {
   },
   mounted() {
     this.doSearch()
+    this.doGetReason()
   },
   methods:{
     dateFormat(timestamp){
@@ -210,6 +269,14 @@ export default {
 
       }).catch(e =>{
         this.$message.error('删除失败')
+      })
+    },
+    doGetReason(){
+      this.axios.getReason({}).then(res=>{
+        if(res){
+          this.treeData = res.data
+        }
+
       })
     }
   }
