@@ -3,10 +3,25 @@
     <div class="search-bar">
       <div class="search-item">
         <div class="item-label">
-          挂账原因
+          账单原因
         </div>
         <div class="item-input">
-          <el-input size="small" v-model="searchForm.text"></el-input>
+          <el-input  v-model="searchForm.text"></el-input>
+        </div>
+      </div>
+      <div class="search-item">
+        <div class="item-label">
+          账单类型
+        </div>
+        <div class="item-input">
+          <el-select v-model="searchForm.reason" placeholder="请选择">
+            <el-option
+                    v-for="item in treeData"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+            </el-option>
+          </el-select>
         </div>
       </div>
       <div class="search-item">
@@ -16,7 +31,7 @@
         <div class="data-input">
           <el-date-picker
                   v-model="searchForm.dataTime"
-                  size="small"
+
                   type="datetimerange"
                   value-format="timestamp"
                   :picker-options="pickerOptions"
@@ -30,21 +45,21 @@
 
 
       <div class="search-item">
-        <el-button type="primary" @click="doSearch" size="small" >查询</el-button>
-        <el-button type="primary" size="small" @click="doAdd(1)">收入</el-button>
-        <el-button type="primary" size="small" @click="doAdd(-1)">支出</el-button>
+        <el-button type="primary" @click="doSearch"  >查询</el-button>
+        <el-button type="primary"  @click="doAdd(1)">收入</el-button>
+        <el-button type="warning"  @click="doAdd(-1)">支出</el-button>
       </div>
       <div class="total-num">
         <span class="item-label">
-             <span :style="{color:'#0797d9',fontSize:'18px'}">收
+             <span :style="{color:'#0797d9',fontSize:'20px'}">收
             </span>{{ cMoney.get}}
         </span>
         <span class="item-label">
-             <span :style="{color:'#d7ac0f',fontSize:'18px'}">支
+             <span :style="{color:'#d7ac0f',fontSize:'20px'}">支
             </span>{{ cMoney.use}}
         </span>
         <span class="item-label">
-            <span :style="{color:cMoney.all>0?'#0797d9':'#d7ac0f',fontSize:'18px'}">总计
+            <span :style="{color:cMoney.all>0?'#0797d9':'#d7ac0f',fontSize:'20px'}">总计
             </span>{{ cMoney.all}}
         </span>
 
@@ -62,22 +77,28 @@
       <el-table-column prop="account_money" label="账单金额" min-width="80" align="center">
         <template slot-scope="{row}">
           <span >
-            <span :style="{color:row.account_money>0?'#0797d9':'#d7ac0f',fontSize:'18px'}">{{row.account_money>0?'收':'支'}}
+            <span :style="{color:row.account_money>0?'#0797d9':'#d7ac0f',fontSize:'23px'}">{{row.account_money>0?'收':'支'}}
             </span>
               {{row.account_money}}
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="account_reason" label="账单原因" min-width="180" align="center">
+      <el-table-column prop="account_reason" label="账单类型" min-width="180" align="center">
+        <template slot-scope="{row}">
+          <el-tag :type="row.account_money>0?'success':'warning'">{{row.account_reason}}</el-tag>
+        </template>
       </el-table-column>
+        <el-table-column prop="account_desc" label="账单原因" min-width="180" align="center">
+
+        </el-table-column>
       <el-table-column label="操作" align="center">
         <template slot-scope="{row}">
-          <el-button type="primary" size="mini" @click="doEdit(row)">编辑</el-button>
-          <el-button type="danger" size="mini" @click="doRemove(row)">删除</el-button>
+          <el-button type="primary" size="small" @click="doEdit(row)" icon="el-icon-s-tools" circle plain></el-button>
+          <el-button type="danger" size="small" @click="doRemove(row)" icon="el-icon-delete" circle plain></el-button>
         </template>
       </el-table-column>
     </el-table>
-    <add-edit ref="addEdit" @doSearch="doSearch" :treeList="treeData"></add-edit>
+    <add-edit ref="addEdit" @doSearch="doSearch"></add-edit>
   </div>
 </template>
 
@@ -88,11 +109,7 @@ export default {
   components:{
     addEdit
   },
-  provide(){
-    return {
-      treeData:this.treeData
-    }
-  },
+
   data(){
     return {
       axios:this.$api,
@@ -177,6 +194,7 @@ export default {
       },
       searchForm:{
         text:'',
+        reason:'',
         dataTime:[
           (new Date()).getTime()-1000*60*60*24*3,
           new Date(new Date().toLocaleDateString()).getTime()+24*60*60*1000-1,
@@ -210,6 +228,7 @@ export default {
     this.doGetReason()
   },
   methods:{
+
     dateFormat(timestamp){
       var time = new Date(timestamp)    //先将时间戳转为Date对象，然后才能使用Date的方法
       var year = time.getFullYear(),
@@ -228,7 +247,8 @@ export default {
       console.log(this.searchForm);
       const [startTime,endTime] = this.searchForm.dataTime
       const params = {
-        reason:this.searchForm.text,
+        desc:this.searchForm.text,
+        reason: this.searchForm.reason,
         startTime,
         endTime
 
@@ -252,29 +272,66 @@ export default {
       this.$refs.addEdit.openModal({type})
     },
     doEdit(row){
-      const data = {
-        accountTime:row.account_time,
-        money: Math.abs(row.account_money-0),
-        text:row.account_reason,
-        type:row.account_money>0?1:-1,
-        id:row.id
-      }
-      this.$refs.addEdit.openModal(data)
+      this.$prompt('请输入密码', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputType:'password'
+      }).then(({ value }) => {
+        if(value=='admin'){
+          const data = {
+            accountTime:row.account_time,
+            money: Math.abs(row.account_money-0),
+            text:row.account_desc,
+            reason:row.account_reason,
+            type:row.account_money>0?1:-1,
+            id:row.id
+          }
+          this.$refs.addEdit.openModal(data)
+        }else {
+          this.$message({
+            type: 'error',
+            message: '密码错误'
+          });
+        }
+
+      }).catch(() => {
+
+      });
+
     },
     doRemove(row){
-      this.axios.delRecord({id:row.id}).then((res) => {
-        console.log(res);
-        this.doSearch()
-        this.$message.success('删除成功')
+      this.$prompt('请输入密码', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputType:'password'
+      }).then(({ value }) => {
+        if(value=='admin'){
+          this.axios.delRecord({id:row.id}).then((res) => {
+            console.log(res);
+            this.doSearch()
+            this.$message.success('删除成功')
 
-      }).catch(e =>{
-        this.$message.error('删除失败')
-      })
+          }).catch(e =>{
+            this.$message.error('删除失败')
+          })
+        }else {
+          this.$message({
+            type: 'error',
+            message: '密码错误'
+          });
+        }
+
+      }).catch(() => {
+
+      });
+
     },
     doGetReason(){
       this.axios.getReason({}).then(res=>{
         if(res){
-          this.treeData = res.data
+          this.treeData = res.data.map(item=>{return{label:item.reason,value:item.reason}})
+          this.treeData.unshift({label:'全部',value:''})
+
         }
 
       })

@@ -3,7 +3,7 @@
 		<el-form
 				:model="form"
 				ref="addOrEditForm"
-				inline
+
 				:rules="rules"  label-width="100px"
 		>
 			<el-form-item  label="时间" prop="accountTime">
@@ -13,16 +13,12 @@
 				<el-radio v-model="form.type" :label="1">收入</el-radio>
 				<el-radio v-model="form.type" :label="-1">支出</el-radio>
 			</el-form-item>
-			<el-form-item  label="金额" prop="money">
-				<el-input v-model="form.money" class="form-input">  <template slot="append">元</template></el-input>
-			</el-form-item>
-			<el-form-item  label="记账备注" prop="text">
-
+			<el-form-item  label="标签" prop="reason" align="left" >
 				<el-popover
 						placement="bottom"
 						width="400"
 						v-model="showPopover"
-						trigger="click">
+						trigger="hover">
 					<div class="tag-box">
 						<el-input v-model="searchTxt" placeholder="请输入内容" size="small" class="tag-item" 	clearable> <template slot="prepend">搜索</template></el-input>
 						<div v-for="item in treeList" class="tag-item" @click="tagClick(item)">
@@ -45,11 +41,20 @@
 						<el-button  class="tag-item" size="mini" type="text" icon="el-icon-plus" circle plain v-else  @click="showInput"></el-button>
 
 					</div>
-					<el-input v-model="form.text" type="textarea" class="form-input" slot="reference"></el-input>
+					<el-button type="warning" v-if="form.reason" slot="reference" size="small" plain>{{form.reason}}</el-button>
+					<el-button type="primary" v-else slot="reference" size="small" >选择标签</el-button>
 				</el-popover>
 
 			</el-form-item>
 
+			<el-form-item  label="记账备注" prop="text">
+
+				<el-input v-model="form.text" type="textarea" class="form-input" ></el-input>
+
+			</el-form-item>
+			<el-form-item  label="金额" prop="money">
+				<el-input v-model="form.money" class="form-input">  <template slot="append">元</template></el-input>
+			</el-form-item>
 		</el-form>
 		<div slot="footer" class="dialog-footer" style="text-align: center">
 		    <el-button @click="closeModal">取 消</el-button>
@@ -83,6 +88,7 @@
 					accountTime:(new Date()).getTime(),
 					money:'',
 					text:'',
+					reason:'',
 					type:1
 				},
 				rules: {
@@ -96,7 +102,10 @@
 					],
 					type:[
 						{ required: true, message: '请选择类型', trigger: 'change' },
-					]
+					],
+					reason:[
+						{ required: true, message: '请选择标签', trigger: 'change' },
+					],
 
 				},
 				isEdit:false,
@@ -150,6 +159,7 @@
 				this.inputValue = '';
 			},
 			tagClick(item){
+				this.form.reason = item.reason
 				this.form.text+=item.reason
 				this.showPopover = false
 			},
@@ -157,6 +167,7 @@
 				this.form ={
 					accountTime:'',
 					money:'',
+					reason: '',
 					text:'',
 					type:1
 				}
@@ -196,11 +207,12 @@
 						const {
 							accountTime,
 							money,
-							text,type} = this.form
+							text,type,reason} = this.form
 						const params = {
 							money:money*type ,
 							time:accountTime,
-							reason:text,
+							reason,
+							nemo:text,
 							id:this.form.id||''
 						}
 

@@ -6,7 +6,7 @@ const resolve = (dir) => path.join(__dirname, dir)
 module.exports = {
 	publicPath: './',
 	assetsDir: 'pack',
-	outputDir: 'dist/account',
+	outputDir: 'dist/account-web',
 	productionSourceMap: false,
 	lintOnSave: false,
 

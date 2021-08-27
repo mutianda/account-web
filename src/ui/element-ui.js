@@ -68,3 +68,4 @@ Vue
 
 Vue.prototype.$message = Message;
 Vue.prototype.$confirm = MessageBox.confirm;
+Vue.prototype.$prompt = MessageBox.prompt;
