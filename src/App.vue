@@ -2,7 +2,9 @@
   <div id="app" class="main">
     <div id="nav" class="nav">
       <router-link to="/">账单</router-link> |
-      <router-link to="/canvas">图表</router-link>
+      <router-link to="/canvas">图表</router-link>|
+      <router-link to="/calendar">日历</router-link>|
+      <router-link to="/product">货架</router-link>
     </div>
     <router-view class="main-view"/>
   </div>
@@ -29,6 +31,8 @@ body{
   a {
     font-weight: bold;
     color: #2c3e50;
+    font-size: 25px;
+    padding: 10px;
 
     &.router-link-exact-active {
       color: #42b983;

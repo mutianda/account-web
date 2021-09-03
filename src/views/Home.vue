@@ -103,6 +103,7 @@
 </template>
 
 <script>
+
 import addEdit from './add-edit'
 export default {
   name: 'Home',
@@ -196,7 +197,7 @@ export default {
         text:'',
         reason:'',
         dataTime:[
-          (new Date()).getTime()-1000*60*60*24*3,
+          new Date(new Date().toLocaleDateString()).getTime(),
           new Date(new Date().toLocaleDateString()).getTime()+24*60*60*1000-1,
 
         ]

@@ -32,7 +32,6 @@
 								v-model="inputValue"
 								ref="saveTagInput"
 								size="small"
-								clearable
 								style="width: 100px"
 								@keyup.enter.native="handleInputConfirm"
 								@blur="handleInputConfirm"
@@ -152,11 +151,20 @@
 
 			handleInputConfirm() {
 				let inputValue = this.inputValue;
+				const has = this.treeData.some(it=>it.reason==inputValue)
+				if(has){
+					this.$message.warning(
+						'该种类已经存在'
+					)
+					return
+				}
 				if (inputValue) {
 					this.addReason()
+				}else {
+					this.inputVisible = false;
+					this.inputValue = '';
 				}
-				this.inputVisible = false;
-				this.inputValue = '';
+
 			},
 			tagClick(item){
 				this.form.reason = item.reason
@@ -198,6 +206,8 @@
 				this.axios.addReason(params).then(res=>{
 					if(res.code==200){
 						this.doGetReason()
+						this.inputVisible = false;
+						this.inputValue = '';
 					}
 				})
 			},

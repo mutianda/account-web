@@ -31,7 +31,7 @@ import {
   CheckboxGroup,
   Image,
   Row,
-  Col,DatePicker,Popover
+  Col, DatePicker, Popover, Calendar
 } from 'element-ui'
 
 Vue
@@ -63,7 +63,7 @@ Vue
   .use(Image)
   .use(Row)
   .use(Col)
-.use(DatePicker).use(Popover)
+.use(DatePicker).use(Popover).use(Calendar)
 
 
 Vue.prototype.$message = Message;

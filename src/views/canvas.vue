@@ -46,8 +46,6 @@
 
 			<div class="search-item">
 				<el-button type="primary" @click="doSearch"  >查询</el-button>
-				<el-button type="primary"  @click="doAdd(1)">收入</el-button>
-				<el-button type="warning"  @click="doAdd(-1)">支出</el-button>
 			</div>
 			<div class="total-num">
         <span class="item-label">
@@ -65,19 +63,20 @@
 
 			</div>
 		</div>
+		<div class="control-box">
+			<div class="left-control"></div>
+			<div class="right-control">
+				<div class="control-btn" :class="{'actived':chooseTimeValue==1}" @click="chooseTime(1)">年</div>
+				<div class="control-btn" :class="{'actived':chooseTimeValue==2}" @click="chooseTime(2)">月</div>
+				<div class="control-btn" :class="{'actived':chooseTimeValue==3}" @click="chooseTime(3)">日</div>
+			</div>
+		</div>
 		<div class="echarts-box">
+
 			<div class="echart-left" id="echarts-left1">
 
 			</div>
 			<div class="echart-right" id="echarts-right1">
-
-			</div>
-		</div>
-		<div class="echarts-box">
-			<div class="echart-left" id="echarts-left2">
-
-			</div>
-			<div class="echart-right" id="echarts-right2">
 
 			</div>
 		</div>
@@ -86,6 +85,19 @@
 </template>
 
 <script>
+	const timer=()=>{
+		let time = new Date();//当前月 要计算其他时间点自己传入即可
+		let year = time.getFullYear();
+		let month = parseInt( time.getMonth() + 1 );
+		let start = new Date( year + "-" + month + "-01 00:00:00" ).getTime()
+		if( month == 12 ){
+
+			month = 0;
+			year += 1;
+		}
+		let end = new Date( year + "-" + ( month + 1 )  + "-01 00:00:00" ).getTime()-1
+		return [start,end]
+	}
 	import addEdit from './add-edit'
 	export default {
 		name: 'Home',
@@ -178,11 +190,7 @@
 				searchForm:{
 					text:'',
 					reason:'',
-					dataTime:[
-						(new Date()).getTime()-1000*60*60*24*3,
-						new Date(new Date().toLocaleDateString()).getTime()+24*60*60*1000-1,
-
-					]
+					dataTime:timer()
 				},
 				tableData: [],
 				treeData:[],
@@ -190,6 +198,7 @@
 				rightChart1:null,
 				leftChart2:null,
 				rightChart2:null,
+				chooseTimeValue:3
 			}
 		},
 		computed:{
@@ -219,14 +228,13 @@
 			initEcharts(){
 				this.leftChart1 = this.$echarts.init(document.getElementById("echarts-left1"));
 				this.rightChart1 = this.$echarts.init(document.getElementById("echarts-right1"));
-				this.leftChart2 = this.$echarts.init(document.getElementById("echarts-left2"));
-				this.rightChart2 = this.$echarts.init(document.getElementById("echarts-right2"));
+				this.leftChart1.on('click', (parma) => {
+					console.log(parma);
+				})
 				setTimeout(function (){
 					window.onresize =  ()=> {
 						this.leftChart1.resize();
 						this.rightChart1.resize();
-						this.rightChart2.resize();
-						this.leftChart2.resize();
 					}
 				},200)
 			},
@@ -236,6 +244,10 @@
 				const random = Math.floor((Math.random()+Math.floor(Math.random()*9+1))*Math.pow(10,num-1));
 				return colorList[random]
 		   },
+			chooseTime(val){
+				this.chooseTimeValue = val
+				this.computedData()
+			},
 			computedData(){
 				const obj ={}
 				const obj2 = {}
@@ -244,25 +256,31 @@
 					if(!obj[item.account_reason]) {
 						obj[item.account_reason] = {
 							name:item.reason,
-							value:item.money,
+							value:Math.abs(item.money),
 						}
 					}
 					else{
-						obj[item.account_reason].value+=item.account_money
+						obj[item.account_reason].value+=Math.abs(item.account_money)
 					}
-					if(!obj2[item.timeDayStr]){
-						obj2[item.timeDayStr] = {
+					const str = {
+						1:item.timeYearStr,
+						2:item.timeMouthStr,
+						3:item.timeDayStr
+					}
+					const key = str[this.chooseTimeValue]
+					if(!obj2[key]){
+						obj2[key] = {
 							get:0,
 							use:0,
 							all:0
 						}
 					}
 					if(item.money>0){
-						obj2[item.timeDayStr].get+=item.money
+						obj2[key].get+=item.money
 					}else {
-						obj2[item.timeDayStr].use+=item.money
+						obj2[key].use+=item.money
 					}
-					obj2[item.timeDayStr].all+=item.money
+					obj2[key].all+=item.money
 				})
 
 				const list = Object.values(obj).map((it,index)=>{
@@ -272,7 +290,7 @@
 				this.leftChart1.setOption(
 					{
 						title: {
-							text: '种类账单',
+							text: '',
 							left: 'center'
 						},
 						tooltip: {
@@ -280,8 +298,11 @@
 
 						},
 						legend: {
-							orient: 'vertical',
-							left: 'left',
+							formatter:(params)=>{
+								console.log(params);
+								const item = obj[params]
+								return params+':'+item.value
+							}
 						},
 						label: {
 							position: 'inner',
@@ -342,7 +363,21 @@
 							}
 						},
 						legend: {
-							data: ['收入', '支出', '盈利']
+							data: ['收入', '支出', '盈利'],
+							formatter:(params)=>{
+								const keys= {
+									'收入':'get',
+									'支出':'use',
+									'盈利':'all'
+								}
+								const key = keys[params]
+								let value =0
+								list2[key].forEach(it=>{
+									value+=it
+								})
+
+								return params+':'+value
+							}
 						},
 						xAxis: [
 							{
@@ -357,7 +392,7 @@
 							{
 								type: 'value',
 								name: '金额',
-								interval: 20,
+
 								axisLabel: {
 									formatter: '{value} 元'
 								}
@@ -368,18 +403,37 @@
 								name: '收入',
 								type: 'bar',
 								stack: 'one',
-								data: list2.get
+								barWidth:'5%',
+								data: list2.get,
+								itemStyle:{
+									color:'#0797d9'
+								},
+								label:{
+									show:true
+								}
 							},
+
 							{
 								name: '支出',
 								type: 'bar',
+								barWidth:'5%',
 								stack: 'one',
-								data: list2.use
+								data: list2.use,
+								itemStyle:{
+									color:'#d7ac0f'
+								},
+								label:{
+									show:true
+								}
 							},
 							{
 								name: '盈利',
 								type: 'line',
-								data: list2.all
+								data: list2.all,
+								label:{
+									show:true,
+
+								}
 							}
 						]
 					})
@@ -490,6 +544,37 @@
 
 
 		}
+		.control-box{
+			height: 50px;
+			display: flex;
+			flex-direction: row;
+			.left-control{
+				width: 500px;
+				height: 50px;
+			}
+			.right-control{
+				flex: 1;
+				height: 50px;
+
+				color: #999;
+				.control-btn{
+					float: right;
+					width: 100px;
+					height: 30px;
+					line-height: 30px;
+					text-align: center;
+					cursor: pointer;
+					margin: 10px ;
+					background-color: #eee;
+					border-radius: 10px;
+					&.actived{
+						color: #fff;
+						background-color: #0797d9;
+					}
+				}
+
+			}
+		}
 		.echarts-box{
 			flex: 1;
 			width: 100%;
@@ -502,6 +587,7 @@
 				flex: 1;
 				height: 400px;
 			}
+
 		}
 
 	}
