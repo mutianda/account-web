@@ -15,20 +15,29 @@
 			</el-form-item>
 			<el-form-item  label="标签" prop="reason" align="left" >
 				<el-popover
-						placement="bottom"
+						placement="top"
 						width="400"
 						v-model="showPopover"
 						trigger="hover">
 					<div class="tag-box">
+						<el-switch
+								style="display: block"
+								v-model="editModel"
+								active-color="#13ce66"
+								inactive-color="#eeeeee"
+								active-text="启用编辑"
+								inactive-text="禁用编辑">
+						</el-switch>
 						<el-input v-model="searchTxt" placeholder="请输入内容" size="small" class="tag-item" 	clearable> <template slot="prepend">搜索</template></el-input>
+
 						<div v-for="item in treeList" class="tag-item" @click="tagClick(item)">
 							<el-tag :disable-transitions="false"
-							        closable
+							        :closable="editModel"
 							        @close="handleClose(item)">{{item.reason}}</el-tag>
 						</div>
 						<el-input
 								class="tag-item"
-								v-if="inputVisible"
+								v-if="inputVisible&&editModel"
 								v-model="inputValue"
 								ref="saveTagInput"
 								size="small"
@@ -37,7 +46,7 @@
 								@blur="handleInputConfirm"
 						>
 						</el-input>
-						<el-button  class="tag-item" size="mini" type="text" icon="el-icon-plus" circle plain v-else  @click="showInput"></el-button>
+						<el-button  class="tag-item" size="mini" type="text" icon="el-icon-plus" circle plain v-if="!inputVisible&&editModel"  @click="showInput" ></el-button>
 
 					</div>
 					<el-button type="warning" v-if="form.reason" slot="reference" size="small" plain>{{form.reason}}</el-button>
@@ -47,12 +56,35 @@
 			</el-form-item>
 
 			<el-form-item  label="记账备注" prop="text">
+				<el-popover
+						ref="popover"
+						placement="top"
+						title=""
+						width="400"
+						trigger="hover"
+						content=""
+						:open-delay="2000"
+						v-model="showSelect"
+				>
+					<div class="search-box" >
 
-				<el-input v-model="form.text" type="textarea" class="form-input" ></el-input>
+							<div class="search-item" v-for="(it,i) in searchList" @click="chooseOne(it)">
+								<div class="desc">
+										{{it.account_desc}}
+								</div>
+								<span class="type">
+									<el-tag :type="it.account_money>0?'success':'warning'">{{it.account_reason}}</el-tag>
+								</span>
+
+							</div>
+					</div>
+
+				</el-popover>
+				<el-input v-model="form.text" class="form-input" @input="changeTxt" ref="inputTxt" @mousemove="moveInInput" @mouseout="moveOutInput"> </el-input>
 
 			</el-form-item>
 			<el-form-item  label="金额" prop="money">
-				<el-input v-model="form.money" class="form-input">  <template slot="append">元</template></el-input>
+				<el-input v-model="form.money" class="form-input" ref="moneyInput">  <template slot="append">元</template></el-input>
 			</el-form-item>
 		</el-form>
 		<div slot="footer" class="dialog-footer" style="text-align: center">
@@ -90,6 +122,7 @@
 					reason:'',
 					type:1
 				},
+				showSelect:false,
 				rules: {
 					money: [
 						{ required: true, message: '请输入金额', trigger: 'blur' },
@@ -108,11 +141,13 @@
 
 				},
 				isEdit:false,
+				editModel:false,
 				inputVisible: false,
 				inputValue: '',
 				treeData:[],
 				searchTxt:'',
 				showPopover:false,
+				tableData:[]
 
 			}
 		},
@@ -132,9 +167,75 @@
 					}
 
 				})
+			},
+			searchList(){
+				return this.tableData.filter(item=>{
+					if(!this.form.text){
+						return true
+					}else {
+						const match = PinyinMatch.match(item.account_desc,this.form.text)
+
+						if(match){
+							return  true
+						}else {
+							return false
+						}
+					}
+				})
 			}
 		},
+		mounted() {
+			this.doSearch()
+		},
+		watch:{
+
+		},
 		methods:{
+			moveInInput(){
+				this.showSelect = true
+
+			},
+			moveOutInput(){
+				this.showSelect = false
+
+			},
+			changeTxt(val){
+				console.log(val);
+			},
+			chooseOne(row){
+				this.form.reason = row.account_reason
+
+				this.form.text = row.account_desc
+				this.$refs.moneyInput.focus()
+			},
+			doSearch(){
+				const [startTime,endTime] =[1500000000000,(new Date()).getTime()]
+				const params = {
+					desc:'',
+					reason:'',
+					startTime,
+					endTime
+
+				}
+
+				this.axios.getRecord(params).then((res) => {
+					console.log(res);
+					this.tableData= res.data.filter((it,i)=>{
+						return  res.data.findIndex(currentValue=> currentValue.account_desc==it.account_desc)==i
+
+					}).map(item=>{
+						item.account_money -=0
+						item.show = true
+						return item
+					})
+					console.log(this.tableData);
+
+
+
+				}).catch(e =>{
+					this.$message.error('查询失败')
+				})
+			},
 			handleClose(tag) {
 
 				this.axios.delReason({id:tag.id}).then(res=>{
@@ -167,9 +268,11 @@
 
 			},
 			tagClick(item){
+				this.$refs.inputTxt.focus(0)
 				this.form.reason = item.reason
 				this.form.text+=item.reason
 				this.showPopover = false
+
 			},
 			closeModal(){
 				this.form ={
@@ -258,6 +361,29 @@
 		.tag-item{
 			margin: 5px 10px;
 			cursor: pointer;
+		}
+	}
+	.search-box{
+		height: 400px;
+		width: 100%;
+		overflow: scroll;
+		.search-item{
+			width: 100%;
+			line-height: 40px;
+			height: 40px;
+			cursor: pointer;
+			border-bottom: .1px solid #eee;
+			display: flex;
+			align-items: center;
+			flex-wrap: nowrap;
+			.desc{
+				flex:1;
+				text-align: left;
+			}
+			.type{
+				width: 100px;
+				text-align: right;
+			}
 		}
 	}
 
