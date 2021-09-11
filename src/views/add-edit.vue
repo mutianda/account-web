@@ -58,13 +58,14 @@
 			<el-form-item  label="记账备注" prop="text">
 				<el-popover
 						ref="popover"
-						placement="top"
+						placement="bottom"
 						title=""
 						width="400"
-						trigger="hover"
+						trigger="focus"
 						content=""
-						:open-delay="2000"
 						v-model="showSelect"
+						:open-delay="500"
+
 				>
 					<div class="search-box" >
 
@@ -78,9 +79,8 @@
 
 							</div>
 					</div>
-
+					<el-input v-model="form.text" class="form-input" @input="changeTxt" slot="reference" ref="inputTxt"  > </el-input>
 				</el-popover>
-				<el-input v-model="form.text" class="form-input" @input="changeTxt" ref="inputTxt" @mousemove="moveInInput" @mouseout="moveOutInput"> </el-input>
 
 			</el-form-item>
 			<el-form-item  label="金额" prop="money">
@@ -193,6 +193,7 @@
 		methods:{
 			moveInInput(){
 				this.showSelect = true
+				debugger
 
 			},
 			moveOutInput(){

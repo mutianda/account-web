@@ -7,15 +7,16 @@
 		>
 
 			<el-form-item  label="商品" prop="name">
-				<el-select v-model="form.name" placeholder="请选择" filterable class="form-input" :filter-method="filterMethod">
-					<el-option
-							v-if="item.show"
-							v-for="item in productList"
-							:key="item.value"
-							:label="item.label"
-							:value="item.value">
-					</el-option>
-				</el-select>
+				<el-input :value="form.name" readonly></el-input>
+<!--				<el-select v-model="form.name" placeholder="请选择" filterable class="form-input" :filter-method="filterMethod">-->
+<!--					<el-option-->
+<!--							v-if="item.show"-->
+<!--							v-for="item in productList"-->
+<!--							:key="item.value"-->
+<!--							:label="item.label"-->
+<!--							:value="item.value">-->
+<!--					</el-option>-->
+<!--				</el-select>-->
 			</el-form-item>
 			<el-form-item  label="类型" prop="type">
 				<el-select v-model="form.type" placeholder="请选择" filterable class="form-input" >
@@ -143,7 +144,6 @@
 				if(row.id)this.isEdit = true
 				else this.isEdit  = false
 				this.form = {...this.form,...row}
-				this.doGetProduct()
 				this.doGetProductType()
 				this.$nextTick(()=>{
 					this.$refs.addOrEditForm.clearValidate()

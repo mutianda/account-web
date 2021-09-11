@@ -40,6 +40,6 @@ body{
   }
 }
   .main-view{
-    height: calc(100% - 90px);
+    height: calc(100% - 98px);
   }
 </style>
