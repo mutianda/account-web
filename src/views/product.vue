@@ -1,17 +1,15 @@
 <template>
 	<div class="home" >
-		<div class="left-tree">
-			<div class="control-btn">
-				<el-button type="primary"  @click="addProduct()">新增</el-button>
-				<el-button type="primary"  @click="delProduct()">删除</el-button>
 
-			</div>
-			<el-input v-model="filterText" ></el-input>
-			<div class="tree-box">
-				<el-tree ref="tree"  node-key="id" :data="productionList" default-expand-all :props="defaultProps" @node-click="chooseNode" highlight-current :filter-node-method="filterMethod" :expand-on-click-node="false"></el-tree>
+<!--		<div class="left-tree">-->
+<!--			<div class="control-btn">-->
+<!--				<el-button type="primary"  @click="addProduct()">新增</el-button>-->
+<!--				<el-button type="primary"  @click="delProduct()">删除</el-button>-->
 
-			</div>
-		</div>
+<!--			</div>-->
+
+
+<!--		</div>-->
 		<div class="right-view">
 			<div class="search-bar">
 				<div class="search-item">
@@ -47,6 +45,22 @@
 					<el-button type="primary"  @click="doAdd()">新增货架</el-button>
 				</div>
 
+			</div>
+			<div class="pro-box">
+				<div class="pro-item" v-for="i in productList">
+					<el-card class="box-card">
+						{{i.name}}
+					</el-card>
+
+				</div>
+				<div class="pro-item" >
+					<el-card class="box-card" >
+						<div class="add" @click="addProduct">
+							新增
+						</div>
+					</el-card>
+
+				</div>
 			</div>
 
 			<el-table :data="tableData"
@@ -315,7 +329,7 @@
 			doGetProduct(){
 				this.axios.getProduct({}).then(res=>{
 					if(res){
-						this.productList = [res.data]
+						this.productList = res.data.children
 						this.chooseNode(res.data)
 					}
 
@@ -387,6 +401,16 @@
 				}
 
 
+			}
+			.pro-box{
+				flex-grow: 1;
+				width: 100%;
+				display: flex;
+				flex-wrap: wrap;
+				.pro-item{
+					width: 300px;
+					padding: 20px;
+				}
 			}
 			.custom-table{
 				flex-grow: 1;

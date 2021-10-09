@@ -15,8 +15,8 @@ var $_cConfig = {
 	}
 }
 var $_devRequest = {
-	// location:"http://120.26.62.101:3030",
-	location:"http://localhost:3030",
+	location:"http://120.26.62.101:3030",
+	// location:"http://localhost:3030",
 	module: "stationConfig",
 }
 

@@ -31,7 +31,8 @@ import {
   CheckboxGroup,
   Image,
   Row,
-  Col, DatePicker, Popover, Calendar
+  Col, DatePicker, Popover, Calendar,
+    Card,
 } from 'element-ui'
 
 Vue
@@ -63,6 +64,7 @@ Vue
   .use(Image)
   .use(Row)
   .use(Col)
+.use(Card)
 .use(DatePicker).use(Popover).use(Calendar)
 
 
