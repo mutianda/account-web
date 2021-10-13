@@ -61,38 +61,38 @@ export default {
 	},
 
 	//商品类型
-	getProduct (data) {
+	getRack (data) {
 		return axios.request({
-		url: '/getProduct',
+		url: '/getRack',
 		method: 'post',
 		data,
 		})
 	},
-	addProduct (data) {
+	addRack (data) {
 		return axios.request({
-			url: '/addProduct',
+			url: '/addRack',
 			method: 'post',
 			data,
 		})
 	},
-	addProductByList (data) {
+	addRackByList (data) {
 		return axios.request({
-			url: '/addProductByList',
+			url: '/addRackByList',
 			method: 'post',
 			data,
 		})
 	},
 
-	editProduct (data) {
+	editRack (data) {
 		return axios.request({
-			url: '/editProduct',
+			url: '/updateRack',
 			method: 'post',
 			data,
 		})
 	},
-	delProduct (data) {
+	delRack (data) {
 		return axios.request({
-			url: '/delProduct',
+			url: '/delRack',
 			method: 'post',
 			data,
 		})

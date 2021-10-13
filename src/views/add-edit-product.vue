@@ -1,13 +1,14 @@
 <template>
-	<el-dialog :visible="showModal" width="400px" @close="closeModal" title="入货" :close-on-click-modal="false">
+	<el-dialog :visible="showModal" width="400px" @close="closeModal" :title="addType?'商品':'货架'" :close-on-click-modal="false">
 		<el-form
+				v-if="addType"
 				:model="form"
 				ref="addOrEditForm"
 				:rules="rules"  label-width="100px"
 		>
 
 			<el-form-item  label="商品" prop="name">
-				<el-input :value="form.name" readonly></el-input>
+				<el-input v-model="form.name" ></el-input>
 <!--				<el-select v-model="form.name" placeholder="请选择" filterable class="form-input" :filter-method="filterMethod">-->
 <!--					<el-option-->
 <!--							v-if="item.show"-->
@@ -31,8 +32,32 @@
 			<el-form-item  label="数量" prop="num">
 				<el-input v-model="form.num" class="form-input">  <template slot="append">个</template></el-input>
 			</el-form-item>
-			<el-form-item  label="价格" prop="price">
-				<el-input v-model="form.price" class="form-input">  <template slot="append">￥</template></el-input>
+
+			<el-form-item  label="排序" prop="sort">
+				<el-input v-model="form.sort" class="form-input">  </el-input>
+			</el-form-item>
+		</el-form>
+		<el-form
+				v-else
+				:model="form1"
+				ref="addOrEditForm1"
+				:rules="rules1"  label-width="100px"
+		>
+
+			<el-form-item  label="货架名称" prop="name">
+				<el-input v-model="form1.name" ></el-input>
+				<!--				<el-select v-model="form.name" placeholder="请选择" filterable class="form-input" :filter-method="filterMethod">-->
+				<!--					<el-option-->
+				<!--							v-if="item.show"-->
+				<!--							v-for="item in productList"-->
+				<!--							:key="item.value"-->
+				<!--							:label="item.label"-->
+				<!--							:value="item.value">-->
+				<!--					</el-option>-->
+				<!--				</el-select>-->
+			</el-form-item>
+			<el-form-item  label="排序" prop="sort">
+				<el-input v-model="form1.sort" class="form-input">  </el-input>
 			</el-form-item>
 		</el-form>
 		<div slot="footer" class="dialog-footer" style="text-align: center">
@@ -66,31 +91,41 @@
 				form:{
 					name:'',
 					type:'',
-					price: '',
+					price: '0',
 					num:'',
+					pid:'',
+					sort:0
+				},
+				form1:{
+					name:'',
+					sort:0
 				},
 				rules: {
-					price: [
-						{ required: true, message: '请输入金额', trigger: 'blur' },
-						{ validator: checkNumber, message: '请输入数字',trigger: 'blur' }
 
-					],
 					num: [
-						{ required: true, message: '请输入金额', trigger: 'blur' },
-						{ validator: checkNumber, message: '请输入数字',trigger: 'blur' }
+						{ required: true, message: '请输入数量', trigger: 'blur' },
+						{ validator: checkNumber, message: '请输入数量',trigger: 'blur' }
 
 					],
 					type:[
 						{ required: true, message: '请选择类型', trigger: 'change' },
 					],
 					name:[
-						{ required: true, message: '请选择标签', trigger: 'change' },
+						{ required: true, message: '请输入商品', trigger: 'blur' },
+					],
+
+
+				},
+				rules1: {
+					name:[
+						{ required: true, message: '请输入货架名', trigger: 'blur' },
 					],
 
 				},
 				isEdit:false,
 				productList:[],
 				typeList:[],
+				addType:true,
 
 			}
 		},
@@ -110,7 +145,11 @@
 			doGetProductType(){
 				this.axios.getProductType({}).then(res=>{
 					if(res){
+
 						this.typeList = res.data.map(item=>{return{label:item.type_name,value:item.type_name,...item,show:true}})
+						if(!this.form.type){
+							this.form.type= this.typeList[0].value
+						}
 					}
 
 				})
@@ -133,39 +172,74 @@
 				this.form ={
 					name:'',
 					type:'',
-					price: '',
+					price: '0',
 					num:'',
+					pid:'',
+					sort: 0
 				}
-				this.$refs.addOrEditForm.clearValidate()
+				this.form1 = {
+					name:'',
+					sort: 0
+				}
+				this.addType&&this.$refs.addOrEditForm.clearValidate()
+				!this.addType&&this.$refs.addOrEditForm1.clearValidate()
 				this.showModal = false
 			},
-			openModal(row={}){
+			openModal(row={},addType){
 				this.showModal = true
+				this.addType= addType
 				if(row.id)this.isEdit = true
 				else this.isEdit  = false
-				this.form = {...this.form,...row}
+				if(addType){
+					this.form = {...this.form,...row,}
+
+				}else {
+					this.form1 = {...this.form1,...row,}
+
+				}
 				this.doGetProductType()
 				this.$nextTick(()=>{
-					this.$refs.addOrEditForm.clearValidate()
+					addType&&this.$refs.addOrEditForm.clearValidate()
+					!addType&&this.$refs.addOrEditForm1.clearValidate()
 				})
 			},
 
 			submit(){
-				this.$refs.addOrEditForm.validate((valid)=> {
-					if (valid) {
-						this.axios[this.isEdit?'editAccountProduct':'addAccountProduct'](this.form).then(res=>{
-							if(res.code==200){
-								this.$emit('doSearch')
-								this.closeModal()
-								this.$message.success(this.isEdit?'编辑成功':'新增成功')
-							}else {
-								this.$message.error(this.isEdit?'编辑失败':'新增失败')
-							}
-						})
-					} else {
+				if(this.addType){
+					this.$refs.addOrEditForm.validate((valid)=> {
+						if (valid) {
+							this.axios[this.isEdit?'editAccountProduct':'addAccountProduct'](this.form).then(res=>{
+								if(res.code==200){
+									this.$emit('doSearch')
+									this.closeModal()
+									this.$message.success(this.isEdit?'编辑成功':'新增成功')
+								}else {
+									this.$message.error(this.isEdit?'编辑失败':'新增失败')
+								}
+							})
+						} else {
 
-					}
-				})
+						}
+					})
+				}else {
+					this.$refs.addOrEditForm1.validate((valid)=> {
+						if (valid) {
+							this.axios[!this.isEdit?'addRack':'editRack']({...this.form1, pid: 0}).then(res => {
+								if (res.code == 200) {
+									this.closeModal()
+									this.$message.success(this.isEdit?'编辑成功':'新增成功')
+									this.$emit('doGetRack')
+								} else {
+									this.$message.error(this.isEdit?'编辑失败':'新增失败')
+
+								}
+							})
+						}
+					})
+				}
+
+
+
 
 
 			}
