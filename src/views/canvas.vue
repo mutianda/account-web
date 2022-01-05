@@ -80,6 +80,7 @@
 
 			</div>
 		</div>
+		<detail-table ref="detailTable"></detail-table>
 
 	</div>
 </template>
@@ -99,10 +100,12 @@
 		return [start,end]
 	}
 	import addEdit from './add-edit'
+	import detailTable from './detail-table'
 	export default {
 		name: 'Home',
 		components:{
-			addEdit
+			addEdit,
+			detailTable
 		},
 
 		data(){
@@ -229,7 +232,57 @@
 				this.leftChart1 = this.$echarts.init(document.getElementById("echarts-left1"));
 				this.rightChart1 = this.$echarts.init(document.getElementById("echarts-right1"));
 				this.leftChart1.on('click', (parma) => {
-					console.log(parma);
+					const [startTime,endTime] = this.searchForm.dataTime
+					const params = {
+						desc:'',
+						reason:parma.name,
+						startTime,
+						endTime
+
+					}
+					this.$refs.detailTable.openModal(params)
+
+				})
+				this.rightChart1.on('click', (parma) => {
+					console.log(parma.name);
+					// const time = new Date(parma.name)
+
+					const timestr = parma.name.replace('月','-').replace('年','-').replace('日','').split('-')
+					let start
+					let	end
+					let year = timestr[0]-0
+					if(this.chooseTimeValue==3){
+						const month = timestr[1]
+						const day = timestr[2]
+						start = new Date( year + "-" + month + "-"+day+" 00:00:00" ).getTime()
+						end = start+24*60*60*1000-1
+					}
+					if(this.chooseTimeValue==2){
+						let month=timestr[1]-0
+						start = new Date( year + "-" + month + "-01 00:00:00" ).getTime()
+						if( month == 12 ){
+							month = 0;
+							year += 1;
+						}
+						end = new Date( year + "-" + ( month + 1 )  + "-01 00:00:00" ).getTime()-1
+
+					}
+					if(this.chooseTimeValue==1){
+						start = new Date( year + "-1-01 00:00:00" ).getTime()
+						end = new Date( year + "-12-31 23:59:59" ).getTime()-1
+
+					}
+					console.log(start,end);
+					const params = {
+						desc:'',
+						reason:'',
+						startTime:start,
+						endTime:end
+
+					}
+					this.$refs.detailTable.openModal(params)
+					console.log(start,end)
+
 				})
 				setTimeout(function (){
 					window.onresize =  ()=> {

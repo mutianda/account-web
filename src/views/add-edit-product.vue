@@ -7,6 +7,18 @@
 				:rules="rules"  label-width="100px"
 		>
 
+			<el-form-item  label="类型" prop="type">
+				<el-input :value="form.pname" readonly v-if="!isEdit" class="form-input"></el-input>
+				<el-select v-model="form.pid" placeholder="请选择" filterable class="form-input"  v-else>
+
+					<el-option
+							v-for="item in rackList"
+							:key="item.id"
+							:label="item.name"
+							:value="item.id">
+					</el-option>
+				</el-select>
+			</el-form-item>
 			<el-form-item  label="商品" prop="name">
 				<el-input v-model="form.name" ></el-input>
 <!--				<el-select v-model="form.name" placeholder="请选择" filterable class="form-input" :filter-method="filterMethod">-->
@@ -74,7 +86,7 @@
 		data(){
 			const checkNumber = (rule, value, callback) => {
 
-				if (value) {
+				if (value!='') {
 					if (parseFloat(value).toString() == 'NaN') {
 						//alert(“请输入数字……”);
 						return callback(new Error('不能输入汉字'))
@@ -94,6 +106,7 @@
 					price: '0',
 					num:'',
 					pid:'',
+					pname:'',
 					sort:0
 				},
 				form1:{
@@ -126,6 +139,7 @@
 				productList:[],
 				typeList:[],
 				addType:true,
+				rackList:[]
 
 			}
 		},
@@ -175,6 +189,7 @@
 					price: '0',
 					num:'',
 					pid:'',
+					pname:'',
 					sort: 0
 				}
 				this.form1 = {
@@ -185,7 +200,8 @@
 				!this.addType&&this.$refs.addOrEditForm1.clearValidate()
 				this.showModal = false
 			},
-			openModal(row={},addType){
+			openModal(row={},addType,rackList){
+				this.rackList = rackList
 				this.showModal = true
 				this.addType= addType
 				if(row.id)this.isEdit = true

@@ -1,68 +1,89 @@
 <template>
 	<div class="home" >
-
-		<div class="right-view">
-			<div class="search-bar">
-				<div class="search-item">
-					<div class="item-label">
-						关键字
-					</div>
-					<div class="item-input">
-						<el-input  v-model="searchForm.keyword" clearable></el-input>
-					</div>
+		<div class="search-bar">
+			<div class="search-item">
+				<div class="item-label">
+					关键字
 				</div>
-				<div class="search-item">
-					<div class="item-label">
-						类型
-					</div>
-					<div class="item-input">
-						<el-select v-model="searchForm.type" placeholder="请选择" filterable clearable>
-							<el-option
-									v-for="item in typesList"
-									:key="item.value"
-									:label="item.label"
-									:value="item.value">
-								<span style="float: left">{{ item.label }}</span>
-								<span style="float: right; color: #8492a6; font-size: 13px" @click.stop="addOrDel(item,'type')"><i :class="item.value?'el-icon-delete':'el-icon-plus'
-" v-if=""></i> </span>
-							</el-option>
-						</el-select>
-					</div>
+				<div class="item-input">
+					<el-input  v-model="searchForm.keyword" clearable></el-input>
 				</div>
-
-
-				<div class="search-item">
-					<el-button type="primary" @click="doSearch"  >查询</el-button>
-				</div>
-
 			</div>
-			<div class="pro-box">
-				<div class="pro-item" v-for="item in rackList">
-					<el-card class="box-card">
-						<div  @click="chooseRack(item)" :style="{background:currentBox.includes(item.id)?'#e08819':currentRack.id==item.id?'#3ab9ea':'#fff'}" class="rack-box">
-							<i class="el-icon-edit"  @click="editRack(item)" style="padding: 0 10px"></i>
-							<i class="el-icon-delete"  @click="delRack(item)" style="padding: 0 10px"></i>
-							<span>
-								{{item.name}}
-							</span>
-							<i class="el-icon-plus"  @click="doAdd(item)" style="padding: 0 10px"></i>
-						</div>
+			<div class="search-item">
+				<div class="item-label">
+					最大值
+				</div>
+				<div class="item-input">
+					<el-input-number v-model="searchForm.num"  :min="0" :max="99" label="描述文字"></el-input-number>
+				</div>
+			</div>
+			<div class="search-item">
+				<div class="item-label">
+					类型
+				</div>
+				<div class="item-input">
+					<el-select v-model="searchForm.type" placeholder="请选择" filterable clearable>
+						<el-option
+								v-for="item in typesList"
+								:key="item.value"
+								:label="item.label"
+								:value="item.value">
+							<span style="float: left">{{ item.label }}</span>
+							<span style="float: right; color: #8492a6; font-size: 13px" @click.stop="addOrDel(item,'type')"><i :class="item.value?'el-icon-delete':'el-icon-plus'
+	" v-if=""></i> </span>
+						</el-option>
+					</el-select>
+				</div>
+			</div>
 
-					</el-card>
+
+			<div class="search-item">
+				<el-button type="primary" @click="doSearch"  >查询</el-button>
+			</div>
+
+		</div>
+		<div class="main-view">
+			<div class="left-view">
+				<div class="pro-box">
+					<div class="pro-item" v-for="item in rackList">
+						<el-card class="box-card">
+
+							<div  @click.stop="chooseRack(item)" :style="{background:currentRack.id==item.id?'#3ab9ea':currentBox.includes(item.id)?'#e08819':'#fff'}" class="rack-box">
+								<i class="el-icon-delete-solid"  @click.stop="delRack(item)" style="padding: 0 10px;color: red;"></i>
+
+								<i class="el-icon-edit"  @click.stop="editRack(item)" style="padding: 0 10px;color: #167b9a"></i>
+
+								<i class="el-icon-circle-plus"  @click.stop="doAdd(item)" style="padding: 0 10px;color: green"></i>
+								<span style="color: #888">
+
+										{{item.name}}
+
+
+								</span>
+							</div>
+
+						</el-card>
+
+					</div>
 
 				</div>
 				<div class="add-btn" >
 
-						<el-button plain type="success" class="add" @click="addRack">
-						 <i class="el-icon-plus"></i>	新增
-						</el-button>
+					<el-button plain type="success" class="add" @click="addRack">
+						<i class="el-icon-plus"></i>	新增
+					</el-button>
 
 
 				</div>
+
 			</div>
+
 			<div class="custom-table">
 				<el-table :data="tableData"
 				          stripe
+				          ref="elTable"
+				          @row-click="rowChange"
+				          highlight-current-row
 
 				          height="100%"
 				          :border="true"
@@ -77,15 +98,15 @@
 					<el-table-column prop="pro_type" label="类型" min-width="80" align="center">
 					</el-table-column>
 
-					<el-table-column prop="pro_num" label="数量" min-width="100" align="center">
+					<el-table-column prop="pro_num" label="数量" min-width="150" align="center">
 						<template slot-scope="{row,$index}">
 							<div @click.stop="currentRow = row" v-if="currentRow.id!==row.id">{{row.pro_num}}个</div>
 							<div class="" v-else >
-								<el-button  @click="closeEdit" style="margin-right: 10px">取消</el-button>
+								<el-button  size="mini"  @click.stop="closeEdit" style="margin-right: 10px">取消</el-button>
 								<span @click.stop="currentRow = row">
-									<el-input-number   v-model="row.pro_num" :min="1" :max="1000" label="数量" ></el-input-number>
-								</span>
-								<el-button   type="success" @click.stop="editNum(row)" style="margin-left: 10px">提交</el-button>
+								<el-input-number   size="mini"  v-model="row.pro_num" :min="0" :max="1000" label="数量" ></el-input-number>
+							</span>
+								<el-button   size="mini" type="success" @click.stop="editNum(row)" style="margin-left: 10px">提交</el-button>
 
 							</div>
 						</template>
@@ -98,9 +119,9 @@
 					</el-table-column>
 				</el-table>
 			</div>
-
-
 		</div>
+
+
 
 		<add-edit ref="addEdit" @doSearch="doSearch" @doGetRack="doGetRack"></add-edit>
 	</div>
@@ -122,6 +143,7 @@
 				searchForm:{
 					name:'',
 					type:'',
+					num:99,
 					keyword:''
 				},
 				tableData: [],
@@ -162,7 +184,19 @@
 
 		},
 		methods:{
+			rowChange(val){
+				if(this.currentRow.id==val.id){
+					this.closeEdit()
+					this.$refs.elTable.setCurrentRow()
+				}else {
+					this.currentRow = val
+					this.$refs.elTable.setCurrentRow(val)
 
+
+
+				}
+
+			},
 
 			closeEdit(){
 				this.currentRow = {}
@@ -179,8 +213,8 @@
 			},
 			editNum(row){
 				console.log(row);
-				const {id,pro_price:price,pro_name:name,pro_num:num,pro_type:type} = row
-				const params = {price,name,num,type,id}
+				const {id,pro_price:price,pro_name:name,pro_num:num,pro_type:type,rack_id:pid} = row
+				const params = {price,name,num,type,id,pid}
 				this.axios['editAccountProduct'](params).then(res=>{
 					if(res.code==200){
 						this.$message.success('编辑成功')
@@ -263,10 +297,16 @@
 				}
 			},
 			doSearch(){
+				if (this.searchForm.num&&parseFloat(this.searchForm.num).toString() == 'NaN') {
+					//alert(“请输入数字……”);
+					this.$message.error('最大值只能输入数字')
+					return
+				}
 				const params = {
 					keyword:this.searchForm.keyword,
 					pid:this.currentRack.id,
 					type: this.searchForm.type,
+					num:this.searchForm.num,
 				}
 				this.axios.getAccountProduct(params).then((res) => {
 					console.log(res);
@@ -279,15 +319,15 @@
 				})
 			},
 			doAdd(item){
-				this.$refs.addEdit.openModal({pid:item.id,},true)
+				this.$refs.addEdit.openModal({pid:item.id,pname:item.name},true,this.rackList)
 			},
 			editRack(row){
 				const {id,name,sort} = row
 				this.$refs.addEdit.openModal({id,name,sort},false)
 			},
 			doEdit(row){
-				const {id,pro_price:price,pro_name:name,pro_num:num,pro_type:type,rack_id:pid} = row
-				this.$refs.addEdit.openModal({price,name,num,type,id,pid},true)
+				const {id,pro_price:price,pro_name:name,pro_num:num,pro_type:type,rack_id:pid,rack_name:pname} = row
+				this.$refs.addEdit.openModal({price,name,num,type,id,pid,pname},true,this.rackList)
 			},
 			doRemove(row){
 				this.$prompt('请输入密码', '提示', {
@@ -326,7 +366,14 @@
 				})
 			},
 			chooseRack(rack){
-				this.currentRack = rack
+
+				if(rack.id==this.currentRack.id){
+					this.currentRack={
+						id:''
+					}
+				}else {
+					this.currentRack = rack
+				}
 				this.doSearch()
 			},
 			doGetProductType(){
@@ -343,92 +390,126 @@
 	}
 </script>
 <style scoped lang="less">
+	input::-webkit-outer-spin-button,
+	input::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+	}
+
+	/* ---滚动条默认显示样式-- */
+
+	::-webkit-scrollbar-thumb {
+		height: 50px;
+		background-color: #999;
+		border: 2px solid #fff;
+		border-radius: 4px;
+		outline: 2px solid #fff;
+		outline-offset: -2px;
+	}
+
+	/* ---鼠标点击滚动条显示样式-- */
+
+	::-webkit-scrollbar-thumb:hover {
+		height: 50px;
+		background-color: #018ee8;
+		border-radius: 4px;
+	}
+
+	/* ---滚动条大小-- */
+
+	::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	/* ---滚动框背景样式-- */
+
+	::-webkit-scrollbar-track-piece {
+		background-color: #fff;
+		border-radius: 0;
+	}
 	.home{
 		width: 100%;
 		display: flex;
-		.left-tree{
-			width: 320px;
-			height: calc(100% - 20px);
-			padding: 5px 10px;
-			margin-right: 10px;
-			.control-btn{
-				height: 50px;
-				text-align: left;
-				line-height: 50px;
+
+		flex-direction: column;
+		.search-bar{
+			padding: 15px 14px;
+			background-color: #eee;
+			margin-bottom: 14px;
+			.search-item{
+				float: left;
+				padding-right: 14px;;
+				& > * {
+					display: inline-block;
+					vertical-align: middle;
+				}
+				.item-label{
+					padding:0 14px;
+
+				}
+				.item-input{
+					width: 200px;
+				}
+				.el-button + .el-button {
+					margin-left: 14px;
+				}
 			}
-			.tree-box{
-				margin-top: 10px;
-				height: calc(100% - 110px);
+			.total-num{
+				float: right;
+				.item-label{
+					padding: 0 14px;
+				}
 			}
+
+
 		}
-		.right-view{
-			flex:1;
+		.main-view{
+			flex-grow: 1;
 			display: flex;
-			flex-direction: column;
-			.search-bar{
-				padding: 15px 14px;
-				background-color: #eee;
-				margin-bottom: 14px;
-				.search-item{
-					float: left;
-					padding-right: 14px;;
-					& > * {
-						display: inline-block;
-						vertical-align: middle;
-					}
-					.item-label{
-						padding:0 14px;
 
-					}
-					.item-input{
-						width: 200px;
-					}
-					.el-button + .el-button {
-						margin-left: 14px;
-					}
-				}
-				.total-num{
-					float: right;
-					.item-label{
-						padding: 0 14px;
-					}
-				}
+			width: 100%;
+			.left-view{
+				height: 100%;
+				overflow: hidden;
+				width: 240px;
+				margin-right: 10px;
+				.pro-box{
+					height: calc(100% - 60px);
+					width: 100%;
+					background-color: #a86615;
+					overflow-y: auto;
+					.pro-item{
+						width: 90%;
+						padding: 10px 5%;
 
-
-			}
-			.pro-box{
-				height: calc(100% - 400px);
-				width: 100%;
-				display: flex;
-				flex-wrap: wrap;
-				.pro-item{
-					width: 300px;
-					padding: 20px;
-					height: 100px;
-					cursor: pointer;
-
-					/deep/.el-card__body{
+						cursor: pointer;
+						/deep/.el-card__body{
 							padding: 0;
+
 						}
 
-					.rack-box{
-						height: 100px;
-						line-height: 100px;
+						.rack-box{
+							line-height: 40px;
+						}
 					}
-				}
+				};
+
 				.add-btn{
-					width: 100px;
-					padding: 20px;
-					line-height: 100px;
-					height: 100px;
+					width: 100%;
+					text-align: center;
+					line-height: 60px;
+					height: 60px;
 
 				}
 			}
 			.custom-table{
-
-				height: 300px;
+				flex: 1;
+				width: 1px;
+				height: 100%;
 			}
 		}
+
+
 
 
 	}

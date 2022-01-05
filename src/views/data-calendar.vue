@@ -5,7 +5,7 @@
 			<template
 					slot="dateCell"
 					slot-scope="{date, data}">
-				<div :class="{'is-selected' :data.isSelected ,'current-month':data.type!='current-month','current-day':dateFormat((new Date()).getTime(),'日')==data.day}"  class="timeBox">
+				<div :class="{'is-selected' :data.isSelected ,'current-month':data.type!='current-month','current-day':dateFormat((new Date()).getTime(),'日')==data.day}"  class="timeBox" @click="chooseTime(data)">
 					<div class="time-str">
 						<span class="text" :class="{'current-month':data.type=='current-month',}">
 								{{ data.day.split('-').slice(2).join('-')}}
@@ -30,13 +30,19 @@
 
 			</template>
 		</el-calendar>
+		<detail-table ref="detailTable">
+
+		</detail-table>
 	</div>
-	
+
 </template>
 
 <script>
+	import detailTable from './detail-table'
+	import DetailTable from "./detail-table";
 	export default {
 		name: "data-calendar",
+		components: {DetailTable},
 		data(){
 			return{
 				axios:this.$api,
@@ -63,42 +69,20 @@
 			timeStr(val){
 				const times = val.split('-')
 				let year = times[0]-0
-				let month = times[1]-1
+				let month = times[1]-0
 				let start = new Date( year + "-" + month + "-01 00:00:00" ).getTime()
-				if( month == 12 ){
-
-					month = 0;
-					year += 1;
-				}
-				let end = new Date( year + "-" + ( month + 3 )  + "-01 00:00:00" ).getTime()-1
-					console.log([start, end])
-				this.startTime = start
-				this.endTime = end
+				this.startTime = start-31*24*60*60*1000
+				this.endTime = start-0+31*24*60*60*1000
 				this.doSearch()
 			}
 		},
 		mounted() {
 			this.monthTime = new Date()
-			this.computeTime()
+
 
 		},
 		methods:{
-			computeTime(){
-				let time = new Date(this.monthTime);
-				let year = time.getFullYear();
-				let month = parseInt( time.getMonth() + 1 );
-				let start = new Date( year + "-" + month + "-01 00:00:00" ).getTime()
-				if( month == 12 ){
 
-					month = 0;
-					year += 1;
-				}
-				let end = new Date( year + "-" + ( month + 3 )  + "-01 00:00:00" ).getTime()-1
-				console.log([start, end])
-				this.startTime = start
-				this.endTime = end
-				this.doSearch()
-			},
 			dateFormat(timestamp,format=''){
 				var time = new Date(timestamp)    //先将时间戳转为Date对象，然后才能使用Date的方法
 				var year = time.getFullYear(),
@@ -188,6 +172,21 @@
 				})
 				this.tableMap = obj2
 			},
+			chooseTime(data){
+				const start = new Date(data.day+' 00:00:00').getTime()
+				const end = start-0 + 24*60*60*1000 -1
+				debugger
+				console.log(start,end);
+				const params = {
+					desc:'',
+					reason:'',
+					startTime:start,
+					endTime:end
+
+				}
+				this.$refs.detailTable.openModal(params)
+
+			}
 		}
 	}
 </script>
